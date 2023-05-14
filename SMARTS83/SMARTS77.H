@@ -80,6 +80,9 @@ private:
 	int totalTasks;          // total declared tasks
 	int currentTask;        // time slice holding task
 	int deadlock;           // deadlock flag
+	/* NEW FIELD - START */
+	int error;				// error flag
+	/* NEW FIELD - END */
 	int progInt;            // 'program interrupt' flag
 	int contextSwitchFlag;  // enables/disables context switch
 	int endOfTimeSlice;     // indicates that has to be a context switch as soon as possible
@@ -121,9 +124,12 @@ public:
 	char getName(int taskNum);
 	char getCurrentName();
 	/* NEW FUNCTIONS - START */
+	int getError();              // get error flag
+	void setError();             // set error flag
 	int getCycles(int taskNum);
 	int getLeftCycleTime(int taskNum);
 	void leftCycleTimeDecr(int taskNum);
+	int finishAll();
 	/* NEW FUNCTIONS - END */
 	taskStatus getStatus(int taskNum);
 	taskStatus getCurrentStatus();

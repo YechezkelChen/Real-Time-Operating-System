@@ -6,14 +6,14 @@
 /* APP77.CPP, an application to demonstrate SMARTS77  functioning   */
 /********************************************************************/
 #include "smarts77.h"
-
+#define NUM_OF_LOOPS 10
 // user Functions
 void a()
 {
 	SMARTS.contextSwitchOff();
 	cout << "\n *************   A Start    *********************";
 	SMARTS.contextSwitchOn();
-	for (int j = 0; j < 100; j++)
+	for (int j = 0; j < NUM_OF_LOOPS; j++)
 	{
 		for (long i = 0; i < 600000; i++);
 		SMARTS.contextSwitchOff();
@@ -30,7 +30,7 @@ void b()
 	SMARTS.contextSwitchOff();
 	cout << "\n *************   B Start    *********************";
 	SMARTS.contextSwitchOn();
-	for (int j = 0; j < 100; j++)
+	for (int j = 0; j < NUM_OF_LOOPS; j++)
 	{
 		for (long i = 0; i < 600000; i++);
 		SMARTS.contextSwitchOff();
@@ -47,7 +47,7 @@ void c()
 	SMARTS.contextSwitchOff();
 	cout << "\n *************   C Start    *********************";
 	SMARTS.contextSwitchOn();
-	for (int j = 0; j < 100; j++)
+	for (int j = 0; j < NUM_OF_LOOPS; j++)
 	{
 		for (long i = 0; i < 600000; i++);
 		SMARTS.contextSwitchOff();
@@ -61,20 +61,22 @@ void c()
 
 void main()
 {
-	/*clrscr();
-	SMARTS.externalFunctions(timerInterruptHandler, scheduler, myTaskEnd, roundRobin);
-	SMARTS.declareTask(a, 'A', 50, 3);
-	SMARTS.declareTask(b, 'B', 70, 4);
-	SMARTS.declareTask(c, 'C', 100, 5);
-	SMARTS.runTheTasks();*/
 	clrscr();
-	SMARTS.externalFunctions(timerInterruptHandler, scheduler, myTaskEnd, EDF);
-	SMARTS.declareTask(b, 'B', 70, 4);
+	// RR
+	SMARTS.externalFunctions(timerInterruptHandler, scheduler, myTaskEnd, roundRobin);
+	// EDF
+	//SMARTS.externalFunctions(timerInterruptHandler, scheduler, myTaskEnd, EDF);
 	SMARTS.declareTask(a, 'A', 50, 3); //void far* code, char name, int cycleTime, int cycles
+	SMARTS.declareTask(b, 'B', 70, 4);
 	SMARTS.declareTask(c, 'C', 100, 5);
 	SMARTS.runTheTasks();
 	scanf("%d");
 }
 
-
+/*
+5, 600,000 - EDF & RR
+100, 600,000 - !EDF & !RR
+10, 600,000 - EDF & !RR
+Amiad Korman & Yechezkel Chen
+*/
 

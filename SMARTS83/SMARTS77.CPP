@@ -29,6 +29,7 @@ Parallelism::Parallelism()
 	activeTasks = 0;
 	totalTasks = 0;
 	deadlock = false;
+	error = false;
 	contextSwitchFlag = true;
 	endOfTimeSlice = true;
 }
@@ -86,12 +87,18 @@ void Parallelism::runTheTasks()
 		if (deadlock)
 		{
 			textcolor(RED);
-			cprintf("\n\n\rExit : deadlock");
+			cprintf("\n\n\rExit : deadlock\n");
 			break;
 		}
-		if (activeTasks == 0)
+		if (error) 
 		{
-			cprintf("\n\n\rExit : finish");
+			textcolor(RED);
+			cprintf("\n\n\rExit : error\n");
+			break;
+		}
+		if (finishAll())
+		{
+			cprintf("\n\n\rExit : finish\n");
 			break;
 		}
 	}
@@ -205,6 +212,16 @@ char Parallelism::getCurrentName()
 	return context[currentTask].name;
 }
 /* NEW FUNCTIONS - START */
+int Parallelism::getError()
+{
+	return error;
+}
+
+void Parallelism::setError()
+{
+	error = true;
+}
+
 int Parallelism::getCycles(int taskNum)
 {
 	return (taskNum <= totalTasks) ? context[taskNum].cycles : UNDEFINED;
@@ -219,6 +236,16 @@ void Parallelism::leftCycleTimeDecr(int taskNum)
 {
 	if (taskNum <= totalTasks)
 		context[taskNum].leftCycleTime--;
+}
+
+int Parallelism::finishAll() 
+{
+	for (int i = 0; i < totalTasks; i++)
+	{
+		if (context[i].cycles > 1)
+			return 0;
+	}
+	return 1;
 }
 /* NEW FUNCTIONS - END */
 taskStatus Parallelism::getStatus(int taskNum)
@@ -335,15 +362,21 @@ void Parallelism::handleTimers()
 	for (i = totalTasks - 1; i >= 0; --i)
 	{
 		leftCycleTimeDecr(i);
-		if (getCycles(i) > 0 && getLeftCycleTime(i) <= 0 )
+		if (getLeftCycleTime(i) == 0)
 		{
-			if (getStatus(i) != NOT_ACTIVE)
-				cprintf("ERROR!");
-			else
-				this->contextSched.reDeclare();
-		}
-			
+			if (getCycles(i) > 1) {
+				if (getStatus(i) != NOT_ACTIVE)
+				{
+					SMARTS.setError();
+				}
+				else
+				{
+					context[i].reDeclare();
+				}
+			}
+		}			
 	}
+
 	for (i = totalTasks - 1; i >= 0; --i)
 	{
 
@@ -402,7 +435,8 @@ void Task::declare(void far* code, void far* userTaskEnd, char name, int cycleTi
 //----------------------------------------------------
 void Task::reDeclare()
 {
-	cprintf("redeclare");
+	//cprintf("  redeclare %c  ", SMARTS.getCurrentName());
+
 	for (int i = MaxStack - 1; i >= (MaxStack - 14); i--)
 		stack[i] = taskCopy[i];
 	stackSeg = FP_SEG(&stack[MaxStack - 14]);
