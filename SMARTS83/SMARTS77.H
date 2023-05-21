@@ -86,7 +86,7 @@ private:
 	int progInt;            // 'program interrupt' flag
 	int contextSwitchFlag;  // enables/disables context switch
 	int endOfTimeSlice;     // indicates that has to be a context switch as soon as possible
-		// a pointer to the new timer interrupt handler
+	// a pointer to the new timer interrupt handler
 	void interrupt(*timerInterruptHandler)(...);
 	// a pointer to the original BIOS timer interrupt handler
 	void interrupt(*userIntAddress)(...);
@@ -128,6 +128,8 @@ public:
 	void setError();             // set error flag
 	int getCycles(int taskNum);
 	int getLeftCycleTime(int taskNum);
+	int getCycleTime(int taskNum);
+	int getCurrentPriority(int taskNum);
 	void leftCycleTimeDecr(int taskNum);
 	int finishAll();
 	/* NEW FUNCTIONS - END */
@@ -162,6 +164,7 @@ void myTaskEnd();
 // 'short term' scheduler algorithms 
 int roundRobin();
 int EDF();
+int RMS();
 // main scheduler object
 extern Parallelism SMARTS;
 

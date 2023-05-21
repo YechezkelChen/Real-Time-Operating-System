@@ -38,3 +38,20 @@ int EDF()
 
 	return nextTask;
 }
+
+int RMS()
+// Rate-Monotonic Scheduling short-term algorithm 
+{
+	int minPriority = MAXINT;
+	int nextTask = SMARTS.getTotalTasks();
+
+	for (int i = 0; i < SMARTS.getTotalTasks(); i++)
+		if (SMARTS.getStatus(i) == READY &&
+			minPriority > SMARTS.getCurrentPriority(i))
+		{
+			nextTask = i;
+			minPriority = SMARTS.getCurrentPriority(i);
+		}
+
+	return nextTask;
+}

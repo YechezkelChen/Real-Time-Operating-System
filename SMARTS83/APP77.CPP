@@ -6,7 +6,7 @@
 /* APP77.CPP, an application to demonstrate SMARTS77  functioning   */
 /********************************************************************/
 #include "smarts77.h"
-#define NUM_OF_LOOPS 10
+#define NUM_OF_LOOPS 5
 // user Functions
 void a()
 {
@@ -63,9 +63,11 @@ void main()
 {
 	clrscr();
 	// RR
-	SMARTS.externalFunctions(timerInterruptHandler, scheduler, myTaskEnd, roundRobin);
+	//SMARTS.externalFunctions(timerInterruptHandler, scheduler, myTaskEnd, roundRobin);
 	// EDF
-	//SMARTS.externalFunctions(timerInterruptHandler, scheduler, myTaskEnd, EDF);
+	SMARTS.externalFunctions(timerInterruptHandler, scheduler, myTaskEnd, EDF);
+	// RMS
+	SMARTS.externalFunctions(timerInterruptHandler, scheduler, myTaskEnd, RMS);
 	SMARTS.declareTask(a, 'A', 50, 3); //void far* code, char name, int cycleTime, int cycles
 	SMARTS.declareTask(b, 'B', 70, 4);
 	SMARTS.declareTask(c, 'C', 100, 5);

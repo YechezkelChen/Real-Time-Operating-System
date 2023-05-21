@@ -232,6 +232,16 @@ int Parallelism::getLeftCycleTime(int taskNum)
 	return (taskNum <= totalTasks) ? context[taskNum].leftCycleTime : UNDEFINED;
 }
 
+int Parallelism::getCycleTime(int taskNum) 
+{
+	return (taskNum <= totalTasks) ? context[taskNum].cycleTime : UNDEFINED;
+}
+
+int Parallelism::getCurrentPriority(int taskNum)
+{
+	return (taskNum <= totalTasks) ? context[taskNum].currentPriority : UNDEFINED;
+}
+
 void Parallelism::leftCycleTimeDecr(int taskNum)
 {
 	if (taskNum <= totalTasks)
@@ -427,6 +437,7 @@ void Task::declare(void far* code, void far* userTaskEnd, char name, int cycleTi
 	this->cycleTime = cycleTime;
 	this->leftCycleTime = cycleTime;
 	this->cycles = cycles;
+	currentPriority = priority = cycleTime;
 	for (int i = MaxStack - 1; i >= (MaxStack - 14); i--)
 		taskCopy[i] = stack[i];
 	status = READY;
