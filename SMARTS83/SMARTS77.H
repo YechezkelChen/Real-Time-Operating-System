@@ -22,6 +22,33 @@
 enum taskStatus { READY, NOT_ACTIVE, SUSPENDED, SLEEP, UNDEFINED };
 
 /**********    Classes    **********/
+class PriorityQueue
+{
+private:
+	int priorityQueue[MaxTask];
+	int pointerQueue;
+public:
+	PriorityQueue();
+	void put(int taskNum);
+	void sort();
+	void get(int taskNum);
+	int isEmpty()
+};
+
+class Mutex
+{
+private:
+	int owner;
+	int level;
+	PriorityQueue waitingList;
+	int numberSuspended;
+	int s;
+public:
+	Mutex();
+	void acquire();
+	void release();
+};
+
 class Event
 {
 private:

@@ -90,7 +90,7 @@ void Parallelism::runTheTasks()
 			cprintf("\n\n\rExit : deadlock\n");
 			break;
 		}
-		if (error) 
+		if (error)
 		{
 			textcolor(RED);
 			cprintf("\n\n\rExit : error\n");
@@ -232,7 +232,7 @@ int Parallelism::getLeftCycleTime(int taskNum)
 	return (taskNum <= totalTasks) ? context[taskNum].leftCycleTime : UNDEFINED;
 }
 
-int Parallelism::getCycleTime(int taskNum) 
+int Parallelism::getCycleTime(int taskNum)
 {
 	return (taskNum <= totalTasks) ? context[taskNum].cycleTime : UNDEFINED;
 }
@@ -248,7 +248,7 @@ void Parallelism::leftCycleTimeDecr(int taskNum)
 		context[taskNum].leftCycleTime--;
 }
 
-int Parallelism::finishAll() 
+int Parallelism::finishAll()
 {
 	for (int i = 0; i < totalTasks; i++)
 	{
@@ -384,7 +384,7 @@ void Parallelism::handleTimers()
 					context[i].reDeclare();
 				}
 			}
-		}			
+		}
 	}
 
 	for (i = totalTasks - 1; i >= 0; --i)
@@ -397,7 +397,7 @@ void Parallelism::handleTimers()
 				--sleepTasks;
 		}
 	}
-	
+
 }
 
 void Parallelism::taskEnd()
@@ -479,4 +479,35 @@ void Task::sleepDecr()
 	}
 }
 
+/**********    class body:  Mutex     **********/
 
+void Mutex::acquire()
+{
+	if (s == 1 || Owner == CurrentTask)
+		s = 0;
+	else {
+		numberSuspended++;
+		waitingList.Put(currentTask);
+		Suspend(currentTask);
+	}
+	Owner = CurrentTask;
+	level++;
+}
+
+void Mutex::release()
+{
+	if (owner == currentTask)
+		if (--level)
+			return;
+		else {
+			owner = -1;
+			if (numberSuspended > 0) {
+				numberSuspended--;
+				waitingList.Get(task);
+				resume(task);
+			}
+			else
+				s = 1;
+		}
+}
+//-----------------------------------------------------
