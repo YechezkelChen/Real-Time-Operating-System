@@ -30,7 +30,7 @@ Parallelism::Parallelism()
 	totalTasks = 0;
 	deadlock = false;
 	error = false;
-	contextSwitchFlag = true;
+	//contextSwitchFlag = true;
 	endOfTimeSlice = true;
 }
 
@@ -153,28 +153,28 @@ void Parallelism::setDeadlock()
 }
 
 int Parallelism::contextSwitchOn()
-// flag which enables context switch
+// flag which enables local context switch
 {
 	if (endOfTimeSlice) //is current time slice finished ?
 	{
 		endOfTimeSlice = false;
-		contextSwitchFlag = true;
+		context[currentTask].contextSwitchFlag = true;
 		callScheduler();	// return control to the scheduler
 		return 1;
 	}
-	contextSwitchFlag = true;
+	context[currentTask].contextSwitchFlag = true;
 	return 0;
 }
 
 void Parallelism::contextSwitchOff()
-// Disable context switch
+// Disable local context switch
 {
-	contextSwitchFlag = false;
+	context[currentTask].contextSwitchFlag = false;
 }
 
 int Parallelism::getContextSwitch()
 {
-	return contextSwitchFlag;
+	return context[currentTask].contextSwitchFlag;
 }
 
 void Parallelism::setProgInt()
@@ -257,6 +257,12 @@ int Parallelism::finishAll()
 	}
 	return 1;
 }
+
+void Parallelism::setPriority(int taskNum, int priority)
+{
+	context[taskNum].currentPriority = priority;
+}
+
 /* NEW FUNCTIONS - END */
 taskStatus Parallelism::getStatus(int taskNum)
 // returns status or undefined if not found
@@ -424,6 +430,7 @@ Task::Task()
 	status = NOT_ACTIVE;
 	sleepCount = 0;
 	currentPriority = priority = 0;
+	contextSwitchFlag = true;
 }
 //-----------------------------------------------------
 void Task::declare(void far* code, void far* userTaskEnd, char name, int cycleTime, int cycles)
@@ -481,33 +488,105 @@ void Task::sleepDecr()
 
 /**********    class body:  Mutex     **********/
 
-void Mutex::acquire()
+Mutex::Mutex(int inheritanceFlag)
 {
-	if (s == 1 || Owner == CurrentTask)
-		s = 0;
-	else {
-		numberSuspended++;
-		waitingList.Put(currentTask);
-		Suspend(currentTask);
-	}
-	Owner = CurrentTask;
-	level++;
+	this->s = 1;
+	this->owner = -1;
+	this->level = 0;
+	this->inheritanceFlag = inheritanceFlag;
 }
 
-void Mutex::release()
+void Mutex::acquire() // atomic
 {
+	SMARTS.contextSwitchOff();
+
+	int currentTask = SMARTS.getCurrentTask();
+	if (s == 1 || owner == currentTask) // prevent deadlock
+		s = 0;
+	else {
+		if (inheritanceFlag == 1)
+		{
+			if (SMARTS.getCurrentPriority(owner) > SMARTS.getCurrentPriority(currentTask))
+				SMARTS.setPriority(owner, SMARTS.getCurrentPriority(currentTask));
+		}
+		waitingList.push(currentTask);
+		SMARTS.suspended();
+	}
+
+	owner = currentTask;
+	level++;
+
+	SMARTS.contextSwitchOn();
+}
+
+void Mutex::release() // atomic
+{
+	SMARTS.contextSwitchOff();
+
+	int currentTask = SMARTS.getCurrentTask();
 	if (owner == currentTask)
+	{
 		if (--level)
 			return;
+
 		else {
 			owner = -1;
-			if (numberSuspended > 0) {
-				numberSuspended--;
-				waitingList.Get(task);
-				resume(task);
+			if (!waitingList.isEmpty()) {
+				int task = waitingList.pop();
+				SMARTS.resume(task);
 			}
 			else
 				s = 1;
 		}
+	}
+	if (inheritanceFlag == 1) {
+		SMARTS.setOriginalPriority(owner);
+	}
+
+	SMARTS.contextSwitchOn();
 }
-//-----------------------------------------------------
+
+/**********    class body:  PriorityQueue     **********/
+PriorityQueue::PriorityQueue()
+{
+	size = 0;
+}
+
+void PriorityQueue::push(int taskNum)
+{
+	if (size < MaxTask)
+	{
+		priorityQueue[size++] = taskNum;
+		this->sort();
+	}
+}
+
+int PriorityQueue::pop()
+{
+	if (this->isEmpty())
+	{
+		return -1;
+	}
+	return priorityQueue[size--];
+}
+
+int PriorityQueue::isEmpty()
+{
+	return size == 0;
+}
+
+void PriorityQueue::sort()
+{
+	// insertion sort
+	for (int i = 1; i < size; ++i) {
+		int key = priorityQueue[i];
+		int j = i - 1;
+
+		while (j >= 0 && SMARTS.getCurrentPriority(priorityQueue[j]) > SMARTS.getCurrentPriority(key)) {
+			priorityQueue[j + 1] = priorityQueue[j];
+			--j;
+		}
+
+		priorityQueue[j + 1] = key;
+	}
+}

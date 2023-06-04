@@ -26,13 +26,13 @@ class PriorityQueue
 {
 private:
 	int priorityQueue[MaxTask];
-	int pointerQueue;
+	int size;
+	void sort();
 public:
 	PriorityQueue();
-	void put(int taskNum);
-	void sort();
-	void get(int taskNum);
-	int isEmpty()
+	void push(int taskNum);
+	int pop();
+	int isEmpty();
 };
 
 class Mutex
@@ -41,10 +41,10 @@ private:
 	int owner;
 	int level;
 	PriorityQueue waitingList;
-	int numberSuspended;
 	int s;
+	int inheritanceFlag;
 public:
-	Mutex();
+	Mutex(int inheritanceFlag);
 	void acquire();
 	void release();
 };
@@ -80,6 +80,7 @@ public:
 	int leftCycleTime;				// current left time of the circle
 	int cycles;						// task cycles numer
 	unsigned taskCopy[MaxStack];  // a copy of the scheduler stack
+	int contextSwitchFlag;  // enables/disables local context switch
 	/* NEW FIELDS - END */
 	unsigned stack[MaxStack];       // the stack
 	unsigned stackSeg, stackPtr;    // the stack pointer
@@ -111,7 +112,7 @@ private:
 	int error;				// error flag
 	/* NEW FIELD - END */
 	int progInt;            // 'program interrupt' flag
-	int contextSwitchFlag;  // enables/disables context switch
+	//int contextSwitchFlag;  // enables/disables context switch
 	int endOfTimeSlice;     // indicates that has to be a context switch as soon as possible
 	// a pointer to the new timer interrupt handler
 	void interrupt(*timerInterruptHandler)(...);
@@ -159,6 +160,7 @@ public:
 	int getCurrentPriority(int taskNum);
 	void leftCycleTimeDecr(int taskNum);
 	int finishAll();
+	void setPriority(int taskNum, int priority);
 	/* NEW FUNCTIONS - END */
 	taskStatus getStatus(int taskNum);
 	taskStatus getCurrentStatus();
