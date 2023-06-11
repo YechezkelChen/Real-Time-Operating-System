@@ -507,7 +507,10 @@ void Mutex::acquire() // atomic
 		if (inheritanceFlag == 1)
 		{
 			if (SMARTS.getCurrentPriority(owner) > SMARTS.getCurrentPriority(currentTask))
+			{
 				SMARTS.setPriority(owner, SMARTS.getCurrentPriority(currentTask));
+				printf("currrent task %d to owner %d priority %d \n", currentTask, owner, SMARTS.getCurrentPriority(currentTask));
+			}
 		}
 		waitingList.push(currentTask);
 		SMARTS.suspended();
@@ -540,7 +543,9 @@ void Mutex::release() // atomic
 		}
 	}
 	if (inheritanceFlag == 1) {
-		SMARTS.setOriginalPriority(owner);
+		//printf("before restore owner %d to owner original priority %d  \n", currentTask, SMARTS.getCurrentPriority(currentTask));
+		SMARTS.setOriginalPriority(currentTask);
+		//printf("after restore owner %d to owner original priority %d  \n", currentTask, SMARTS.getCurrentPriority(currentTask));
 	}
 
 	SMARTS.contextSwitchOn();
@@ -563,11 +568,7 @@ void PriorityQueue::push(int taskNum)
 
 int PriorityQueue::pop()
 {
-	if (this->isEmpty())
-	{
-		return -1;
-	}
-	return priorityQueue[size--];
+	return priorityQueue[--size];
 }
 
 int PriorityQueue::isEmpty()
