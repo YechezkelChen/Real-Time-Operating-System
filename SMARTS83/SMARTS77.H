@@ -33,6 +33,7 @@ public:
 	void push(int taskNum);
 	int pop();
 	int isEmpty();
+	int search(int taskNum);
 };
 
 class Mutex
@@ -43,10 +44,13 @@ private:
 	PriorityQueue waitingList;
 	int s;
 	int inheritanceFlag;
+	int recursiaFlag;
 public:
-	Mutex(int inheritanceFlag);
+	Mutex();
+	Mutex(int inheritanceFlag, int recursiaFlag);
 	void acquire();
 	void release();
+	void inheritRecursively(int currentTask);
 };
 
 class Event
@@ -121,6 +125,7 @@ private:
 	void far* scheduler;    // a pointer to the scheduler
 	void far* userTaskEnd;      // a pointer to the function called at the end of each task
 public:
+	Mutex mutexes[MaxTask];
 	int sleepTasks;         // indicates how many task is sleeping, and it can't be deadlock
 	int activeTasks;        // indicates how many task is activate 
 	int traceInd;           // debugging index

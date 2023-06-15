@@ -31,7 +31,11 @@ Parallelism::Parallelism()
 	deadlock = false;
 	error = false;
 	//contextSwitchFlag = true;
-	endOfTimeSlice = true;
+	endOfTimeSlice = true;/*
+	for (int i = 0; i < MaxTask; i++)
+	{
+		mutexes[i] = new Mutex(1,1);
+	}*/
 }
 
 void Parallelism::externalFunctions(void interrupt(*timerInterruptHandler)(...),
@@ -262,8 +266,8 @@ void Parallelism::setPriority(int taskNum, int priority)
 {
 	context[taskNum].currentPriority = priority;
 }
-
 /* NEW FUNCTIONS - END */
+
 taskStatus Parallelism::getStatus(int taskNum)
 // returns status or undefined if not found
 {
@@ -488,12 +492,18 @@ void Task::sleepDecr()
 
 /**********    class body:  Mutex     **********/
 
-Mutex::Mutex(int inheritanceFlag)
+Mutex::Mutex()
+{
+	Mutex(1, 1);
+}
+
+Mutex::Mutex(int inheritanceFlag, int recursiaFlag)
 {
 	this->s = 1;
 	this->owner = -1;
 	this->level = 0;
 	this->inheritanceFlag = inheritanceFlag;
+	this->recursiaFlag = recursiaFlag;
 }
 
 void Mutex::acquire() // atomic
@@ -510,6 +520,12 @@ void Mutex::acquire() // atomic
 			{
 				SMARTS.setPriority(owner, SMARTS.getCurrentPriority(currentTask));
 				printf("currrent task %d to owner %d priority %d \n", currentTask, owner, SMARTS.getCurrentPriority(currentTask));
+				if (recursiaFlag == 1)
+				{
+					// do recursive inhetience call
+					printf("recursive inheritance");
+					inheritRecursively(owner);
+				}
 			}
 		}
 		waitingList.push(currentTask);
@@ -551,6 +567,29 @@ void Mutex::release() // atomic
 	SMARTS.contextSwitchOn();
 }
 
+void Mutex::inheritRecursively(int currentTask)
+{
+	for (int i = 0; i < MaxTask; i++)
+	{
+		if (SMARTS.mutexes[i].waitingList.search(currentTask))
+		{
+			int owner = SMARTS.mutexes[i].owner;
+			if (SMARTS.getCurrentPriority(owner) > SMARTS.getCurrentPriority(currentTask))
+			{
+				SMARTS.setPriority(owner, SMARTS.getCurrentPriority(currentTask));
+				printf("currrent task %d to owner %d priority %d \n", currentTask, owner, SMARTS.getCurrentPriority(currentTask));
+				if (recursiaFlag == 1)
+				{
+					// do recursive inhetience call
+					printf("recursive inheritance");
+					inheritRecursively(owner);
+				}
+			}
+		}
+	}
+	
+}
+
 /**********    class body:  PriorityQueue     **********/
 PriorityQueue::PriorityQueue()
 {
@@ -574,6 +613,18 @@ int PriorityQueue::pop()
 int PriorityQueue::isEmpty()
 {
 	return size == 0;
+}
+
+int PriorityQueue::search(int taskNum)
+{
+	for (int i = 0; i < size; i++)
+	{
+		if (priorityQueue[i] == taskNum)
+		{
+			return 1;
+		}
+	}
+	return 0;
 }
 
 void PriorityQueue::sort()
