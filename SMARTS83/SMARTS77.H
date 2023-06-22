@@ -39,18 +39,17 @@ public:
 class Mutex
 {
 private:
-	int owner;
 	int level;
-	PriorityQueue waitingList;
 	int s;
 	int inheritanceFlag;
 	int recursiaFlag;
 public:
+	int owner;
+	PriorityQueue waitingList;
 	Mutex();
 	Mutex(int inheritanceFlag, int recursiaFlag);
 	void acquire();
 	void release();
-	void inheritRecursively(int currentTask);
 };
 
 class Event
@@ -166,6 +165,8 @@ public:
 	void leftCycleTimeDecr(int taskNum);
 	int finishAll();
 	void setPriority(int taskNum, int priority);
+	void inheritRecursively(int currentTask);
+	FILE* file;
 	/* NEW FUNCTIONS - END */
 	taskStatus getStatus(int taskNum);
 	taskStatus getCurrentStatus();
@@ -201,5 +202,4 @@ int EDF();
 int RMS();
 // main scheduler object
 extern Parallelism SMARTS;
-
 

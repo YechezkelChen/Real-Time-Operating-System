@@ -43,7 +43,6 @@
 
  *************   D acquire mutexD   *********************
 currrent task 3 inherite to owner 4 priority 405 
-recursive inheritance
 
  *************   C acquire mutexB   *********************
 
@@ -53,8 +52,6 @@ recursive inheritance
 
  *************   C acquire mutexC   *********************
 currrent task 2 inherite to owner 3 priority 403 
-recursive inheritance
-Recursive: currrent task 3 to owner 4 priority 403 
 
  *************   B acquire mutexA   *********************
 
@@ -62,16 +59,13 @@ Recursive: currrent task 3 to owner 4 priority 403
 
  *************   B acquire mutexB   *********************
 currrent task 1 inherite to owner 2 priority 401 
-recursive inheritance
-Recursive: currrent task 2 to owner 3 priority 401 
-Recursive: currrent task 3 to owner 4 priority 401 
 
  *************   A acquire mutexA   *********************
 currrent task 0 inherite to owner 1 priority 400 
-recursive inheritance
-Recursive: currrent task 1 to owner 2 priority 400 
-Recursive: currrent task 2 to owner 3 priority 400 
-Recursive: currrent task 3 to owner 4 priority 400 
+FFFFF
+ *************   F Finish    *********************
+GGGGG
+ *************   G Finish    *********************
 EEEEE
  *************   E release mutexD   *********************
 restore owner 4 priority to original priority 407  
@@ -100,12 +94,8 @@ AAAAA
  *************   A Finish    *********************
 BBBBB
  *************   B Finish    *********************
-FFFFF
- *************   F Finish    *********************
 CCCCC
  *************   C Finish    *********************
-GGGGG
- *************   G Finish    *********************
 DDDDD
  *************   D Finish    *********************
 HHHHH
@@ -157,7 +147,6 @@ EEEEE
 
  *************   D acquire mutexD   *********************
 currrent task 3 inherite to owner 4 priority 405 
-recursive inheritance
 
  *************   C acquire mutexB   *********************
 
@@ -167,8 +156,6 @@ recursive inheritance
 
  *************   C acquire mutexC   *********************
 currrent task 2 inherite to owner 3 priority 403 
-recursive inheritance
-Recursive: currrent task 3 to owner 4 priority 403 
 
  *************   B acquire mutexA   *********************
 
@@ -176,16 +163,13 @@ Recursive: currrent task 3 to owner 4 priority 403
 
  *************   B acquire mutexB   *********************
 currrent task 1 inherite to owner 2 priority 401 
-recursive inheritance
-Recursive: currrent task 2 to owner 3 priority 401 
-Recursive: currrent task 3 to owner 4 priority 401 
 
  *************   A acquire mutexA   *********************
 currrent task 0 inherite to owner 1 priority 400 
-recursive inheritance
-Recursive: currrent task 1 to owner 2 priority 400 
-Recursive: currrent task 2 to owner 3 priority 400 
-Recursive: currrent task 3 to owner 4 priority 400 
+FFFFF
+ *************   F Finish    *********************
+GGGGG
+ *************   G Finish    *********************
 EEEEE
  *************   E release mutexD   *********************
 restore owner 4 priority to original priority 407  
@@ -214,12 +198,8 @@ AAAAA
  *************   A Finish    *********************
 BBBBB
  *************   B Finish    *********************
-FFFFF
- *************   F Finish    *********************
 CCCCC
  *************   C Finish    *********************
-GGGGG
- *************   G Finish    *********************
 DDDDD
  *************   D Finish    *********************
 HHHHH

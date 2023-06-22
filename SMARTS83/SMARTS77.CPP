@@ -31,11 +31,7 @@ Parallelism::Parallelism()
 	deadlock = false;
 	error = false;
 	//contextSwitchFlag = true;
-	endOfTimeSlice = true;/*
-	for (int i = 0; i < MaxTask; i++)
-	{
-		mutexes[i] = new Mutex(1,1);
-	}*/
+	endOfTimeSlice = true;
 }
 
 void Parallelism::externalFunctions(void interrupt(*timerInterruptHandler)(...),
@@ -76,33 +72,36 @@ void Parallelism::runTheTasks()
 	currentTask = totalTasks;
 
 	asm	cli;		// forbids interrupts (clear interrupts) while changing the interrupt vect
-		// saves the original BIOS userInt in our variable 'userIntAddress' to be restored at the end
+	// saves the original BIOS userInt in our variable 'userIntAddress' to be restored at the end
 	userIntAddress = getvect(userInt);	// BIOS userInt 0x60  (unused by PC)
-				// puts the normal BIOS timerInt into the unused userInt address
+	// puts the normal BIOS timerInt into the unused userInt address
 	setvect(userInt, getvect(timerInt));	// timerInt 0x08 
 
 	// sets our SMARTS external function 'timerInterruptHandler' as the new PC hard interrupt time handler
 	setvect(timerInt, timerInterruptHandler);
 	asm	sti;	// allows back interrupts (set interrupts)
 
-		// waits for end of runTheTasks (end of all the tasks)
+	// waits for end of runTheTasks (end of all the tasks)
 	while (true)
 	{
 		if (deadlock)
 		{
 			textcolor(RED);
 			cprintf("\n\n\rExit : deadlock\n");
+			fprintf(file, "\n\n\rExit : deadlock\n");
 			break;
 		}
 		if (error)
 		{
 			textcolor(RED);
 			cprintf("\n\n\rExit : error\n");
+			fprintf(file, "\n\n\rExit : error\n");
 			break;
 		}
 		if (finishAll())
 		{
 			cprintf("\n\n\rExit : finish\n");
+			fprintf(file, "\n\n\rExit : finish\n");
 			break;
 		}
 	}
@@ -266,6 +265,25 @@ void Parallelism::setPriority(int taskNum, int priority)
 {
 	context[taskNum].currentPriority = priority;
 }
+
+void Parallelism::inheritRecursively(int currentTask)
+{
+	for (int i = 0; i < MaxTask; i++)
+	{
+		if (mutexes[i].waitingList.search(currentTask))
+		{
+			int owner = mutexes[i].owner;
+			if (getCurrentPriority(owner) > getCurrentPriority(currentTask))
+			{
+				setPriority(owner, getCurrentPriority(currentTask));
+				printf("Recursive: currrent task %d to owner %d priority %d \n", currentTask, owner, getCurrentPriority(currentTask));
+				fprintf(file, "Recursive: currrent task %d to owner %d priority %d \n", currentTask, owner, getCurrentPriority(currentTask));
+				inheritRecursively(owner);
+			}
+		}
+	}
+}
+
 /* NEW FUNCTIONS - END */
 
 taskStatus Parallelism::getStatus(int taskNum)
@@ -494,7 +512,11 @@ void Task::sleepDecr()
 
 Mutex::Mutex()
 {
-	Mutex(1, 1);
+	this->s = 1;
+	this->owner = -1;
+	this->level = 0;
+	this->inheritanceFlag = 1;
+	this->recursiaFlag = 1;
 }
 
 Mutex::Mutex(int inheritanceFlag, int recursiaFlag)
@@ -519,12 +541,14 @@ void Mutex::acquire() // atomic
 			if (SMARTS.getCurrentPriority(owner) > SMARTS.getCurrentPriority(currentTask))
 			{
 				SMARTS.setPriority(owner, SMARTS.getCurrentPriority(currentTask));
-				printf("currrent task %d to owner %d priority %d \n", currentTask, owner, SMARTS.getCurrentPriority(currentTask));
+				printf("currrent task %d inherite to owner %d priority %d \n", currentTask, owner, SMARTS.getCurrentPriority(currentTask));
+				fprintf(SMARTS.file, "currrent task %d inherite to owner %d priority %d \n", currentTask, owner, SMARTS.getCurrentPriority(currentTask));
 				if (recursiaFlag == 1)
 				{
 					// do recursive inhetience call
-					printf("recursive inheritance");
-					inheritRecursively(owner);
+					printf("recursive inheritance\n");
+					fprintf(SMARTS.file, "recursive inheritance\n");
+					SMARTS.inheritRecursively(owner);
 				}
 			}
 		}
@@ -559,35 +583,12 @@ void Mutex::release() // atomic
 		}
 	}
 	if (inheritanceFlag == 1) {
-		//printf("before restore owner %d to owner original priority %d  \n", currentTask, SMARTS.getCurrentPriority(currentTask));
 		SMARTS.setOriginalPriority(currentTask);
-		//printf("after restore owner %d to owner original priority %d  \n", currentTask, SMARTS.getCurrentPriority(currentTask));
+		printf("restore owner %d priority to original priority %d  \n", currentTask, SMARTS.getCurrentPriority(currentTask));
+		fprintf(SMARTS.file, "restore owner %d priority to original priority %d  \n", currentTask, SMARTS.getCurrentPriority(currentTask));
 	}
 
 	SMARTS.contextSwitchOn();
-}
-
-void Mutex::inheritRecursively(int currentTask)
-{
-	for (int i = 0; i < MaxTask; i++)
-	{
-		if (SMARTS.mutexes[i].waitingList.search(currentTask))
-		{
-			int owner = SMARTS.mutexes[i].owner;
-			if (SMARTS.getCurrentPriority(owner) > SMARTS.getCurrentPriority(currentTask))
-			{
-				SMARTS.setPriority(owner, SMARTS.getCurrentPriority(currentTask));
-				printf("currrent task %d to owner %d priority %d \n", currentTask, owner, SMARTS.getCurrentPriority(currentTask));
-				if (recursiaFlag == 1)
-				{
-					// do recursive inhetience call
-					printf("recursive inheritance");
-					inheritRecursively(owner);
-				}
-			}
-		}
-	}
-	
 }
 
 /**********    class body:  PriorityQueue     **********/

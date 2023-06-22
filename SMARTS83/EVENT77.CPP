@@ -82,4 +82,3 @@ int Event::testAndSet()
 	return tmp;
 }
 
-
